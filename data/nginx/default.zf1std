@@ -1,0 +1,41 @@
+server {
+    listen   80;
+    server_name ~^zf1std$;
+
+    access_log /var/log/nginx/zf1std.access.log;
+    error_log /var/log/nginx/zf1std.error.log;
+
+#    add_header Host $server_name;
+#    add_header X-Server $hostname;
+
+    gzip on;
+    gzip_min_length 1000;
+    gzip_types text/plain text/xml application/xml;
+
+    client_max_body_size 25m;
+
+    root /home/al/P/zf1std/public;
+
+    try_files $uri $uri/ /index.php?$args;
+    index index.html index.php;
+
+    location / {
+        index index.php;
+    }
+
+    # Die eigentliche RewriteRule für das Zend Framework
+    if (!-e $request_filename) {
+        rewrite ^.*$ /index.php last;
+    }
+
+  location ~ \.php$ {
+    fastcgi_cache   off;
+    fastcgi_pass    127.0.0.1:9000;
+    fastcgi_index  index.php;
+    include        fastcgi_params;
+    fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_param  APPLICATION_ENV development;
+    fastcgi_param  HTTPS $https;
+  }
+}
+
